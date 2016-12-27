@@ -55,7 +55,7 @@ function UpdateStocksValue($stock_name)
     $ninserted=0;
 	//echo "<pre>";
 	//print_r($stock_arr);
-
+	$skiped = 0;
     if(is_array($stock_arr)){	
     foreach($stock_arr as $key =>$stock)
     {
@@ -69,7 +69,17 @@ function UpdateStocksValue($stock_name)
             //$log->AddToLog(" - Not inserting " . $stock['symbol'] . " previous value like this " . $stock['LastTradePriceOnly']);
         }
         else{
-		if($stock['DaysLow'] != "" &&  $stock['Open'] != ""){
+			if($stock['Open'] == ""){
+				$stock['Open'] = 0;
+			}
+			if($stock['DaysHigh'] == ""){
+				$stock['DaysHigh'] = 0;
+			}
+
+			if($stock['DaysLow'] == ""){
+				$stock['DaysLow'] = 0;
+			}	
+		if($stock['DaysLow'] >=0  &&  $stock['Open'] >=0){
 			$last_price = 0;
 	    		if($stock['LastTradePriceOnly'] > 0){
 				$last_price = $stock['LastTradePriceOnly'];
@@ -79,16 +89,23 @@ function UpdateStocksValue($stock_name)
             		$sql = "INSERT INTO tbl_data (id_symbol,id_LastTradePriceOnly,id_LastTradeDate,id_LastTradeTime,id_Open,id_DaysHigh,id_DaysLow,id_Volume)
             		VALUES
             		('".$stock['symbol']."','".$last_price."','".$stock_date."',
-            		'".$stock_time."','".$stock['Open']."','".$stock['DaysHigh']."','".$stock['DaysLow']."','".$stock['Volume']."')";
+            		'".$stock_time."','".$stock['Open']."','".$stock['DaysHigh']."','".$stock['DaysLow']."','".(int)$stock['Volume']."')";
             		//echo $sql . "<br/>";
             		$db->query($sql);
+			//echo "<pre>";
+			//print_r($stock);
 		}
 		else{
+			$skiped++;
+			echo "<pre>";
+			print_r($stock);
+			echo "</pre>";
 			echo "SKIP <strong>" . $stock['symbol'] . "</strong><br/>";
 		}
         }
     }
     }
+	echo "Skiped $skiped valus </br>"; 
     $log->AddToLog("Summary getQuotes in " . $ext->getExecutionTime() . "sec. Inserted " . $ninserted . "/" . $inserted );
 }
 
